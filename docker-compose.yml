@@ -1,0 +1,85 @@
+services:
+  oracle-db:
+    image: quay.io/maksymbilenko/oracle-12c:latest
+    container_name: oracle-12c-db
+    environment:
+      # Oracle 12c environment variables
+      - ORACLE_ALLOW_REMOTE=true
+      # Web console disabled for better performance
+      - WEB_CONSOLE=false
+      # Memory settings
+      - ORACLE_DISABLE_ASYNCH_IO=true
+    ports:
+      # Oracle Database listener port
+      - "1521:1521"
+      # Oracle Enterprise Manager port
+      - "5500:5500"
+      # SSH port
+      - "22:22"
+    volumes:
+      # Persist database data
+      - oracle_data:/opt/oracle/oradata
+      # Optional: Mount initialization scripts
+      - ./init-scripts:/opt/oracle/scripts/startup
+      # Optional: Mount setup scripts
+      - ./setup-scripts:/opt/oracle/scripts/setup
+    networks:
+      - oracle-network
+    restart: unless-stopped
+    # Resource limits (Oracle 12c requires more resources)
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'SELECT 1 FROM DUAL;' | sqlplus -S system/oracle@xe"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5m
+
+  # Redis for distributed locking and caching
+  redis:
+    image: redis:7-alpine
+    container_name: banking-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - oracle-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Optional: Adminer - Web-based database management
+  adminer:
+    image: adminer:latest
+    container_name: oracle-adminer
+    depends_on:
+      - oracle-db
+    ports:
+      - "8080:8080"
+    networks:
+      - oracle-network
+    restart: unless-stopped
+    environment:
+      - ADMINER_DEFAULT_SERVER=oracle-db:1521
+
+volumes:
+  oracle_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  oracle-network:
+    driver: bridge
