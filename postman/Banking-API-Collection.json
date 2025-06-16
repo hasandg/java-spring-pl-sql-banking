@@ -1,0 +1,95 @@
+{
+  "info": {
+    "name": "Banking API Collection",
+    "description": "Comprehensive API collection for Java Spring Boot Banking Application",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "accountNumber1",
+      "value": ""
+    },
+    {
+      "key": "accountNumber2", 
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Account 1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const responseJson = pm.response.json();",
+              "pm.collectionVariables.set('accountNumber1', responseJson.accountNumber);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accountHolderName\": \"John Doe\",\n  \"balance\": 5000.00,\n  \"accountType\": \"SAVINGS\",\n  \"currency\": \"USD\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/accounts",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "accounts"]
+        }
+      }
+    },
+    {
+      "name": "Deposit Money",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const amount = (Math.random() * 1000 + 100).toFixed(2);",
+              "pm.collectionVariables.set('depositAmount', amount);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/transactions/deposit?accountNumber={{accountNumber1}}&amount={{depositAmount}}&description=Test Deposit",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "transactions", "deposit"],
+          "query": [
+            {
+              "key": "accountNumber",
+              "value": "{{accountNumber1}}"
+            },
+            {
+              "key": "amount", 
+              "value": "{{depositAmount}}"
+            },
+            {
+              "key": "description",
+              "value": "Test Deposit"
+            }
+          ]
+        }
+      }
+    }
+  ]
+} 

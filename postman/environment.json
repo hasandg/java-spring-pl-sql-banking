@@ -1,0 +1,43 @@
+{
+  "id": "banking-api-env",
+  "name": "Banking API Environment",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "apiVersion",
+      "value": "v1",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "timeout",
+      "value": "30000",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "accountNumber1",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "accountNumber2",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "transactionId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    }
+  ],
+  "_postman_variable_scope": "environment"
+} 
