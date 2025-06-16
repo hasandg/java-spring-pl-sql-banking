@@ -14,10 +14,6 @@ public enum ProcedureResult {
         this.code = code;
     }
 
-    public int getCode() {
-        return code;
-    }
-
     public static ProcedureResult fromCode(int code) {
         return Arrays.stream(values())
             .filter(r -> r.code == code)
