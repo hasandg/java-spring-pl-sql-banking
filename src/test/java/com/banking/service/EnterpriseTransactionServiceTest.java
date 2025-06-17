@@ -207,7 +207,6 @@ class EnterpriseTransactionServiceTest {
         BigDecimal amount = new BigDecimal("500.00");
         
         Account account = createTestAccount(accountNumber, new BigDecimal("1000.00"));
-        Transaction transaction = createTestTransaction(TransactionType.DEPOSIT, amount);
 
         when(distributedLockTemplate.execute(anyString(), any(Duration.class), any(Supplier.class)))
             .thenAnswer(invocation -> {
@@ -218,11 +217,7 @@ class EnterpriseTransactionServiceTest {
         when(accountRepository.findByAccountNumberForUpdate(accountNumber))
             .thenReturn(Optional.of(account));
         when(accountRepository.save(any(Account.class)))
-            .thenThrow(new OptimisticLockingFailureException("Version conflict"))
-            .thenReturn(account);
-        when(transactionFactory.createTransaction(any(), eq(TransactionType.DEPOSIT), eq(amount), 
-            anyString(), eq(TransactionStatus.COMPLETED))).thenReturn(transaction);
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction);
+            .thenThrow(new OptimisticLockingFailureException("Version conflict"));
 
         assertThrows(OptimisticLockingFailureException.class, 
             () -> transactionService.deposit(accountNumber, amount, "Test"));

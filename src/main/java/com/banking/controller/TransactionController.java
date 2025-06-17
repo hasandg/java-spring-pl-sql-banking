@@ -1,62 +1,95 @@
 package com.banking.controller;
 
-import com.banking.dto.TransactionDto;
+import com.banking.dto.TransactionRequestDto;
+import com.banking.dto.TransactionResponseDto;
 import com.banking.entity.Transaction;
 import com.banking.mapper.TransactionMapper;
 import com.banking.service.TransactionService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
 @Validated
+@RequiredArgsConstructor
+@Slf4j
 public class TransactionController {
 
     private final TransactionService transactionService;
     private final TransactionMapper transactionMapper;
 
-    public TransactionController(TransactionService transactionService, TransactionMapper transactionMapper) {
-        this.transactionService = transactionService;
-        this.transactionMapper = transactionMapper;
-    }
-
     @PostMapping("/deposit")
-    public ResponseEntity<TransactionDto> deposit(
-            @RequestParam @NotBlank String accountNumber,
-            @RequestParam @Positive BigDecimal amount,
-            @RequestParam(required = false) String description) {
-        Transaction transaction = transactionService.deposit(accountNumber, amount, description);
-        return ResponseEntity.ok(transactionMapper.toDto(transaction));
+    public ResponseEntity<TransactionResponseDto> deposit(@Valid @RequestBody TransactionRequestDto requestDto) {
+        log.info("Processing deposit request for account: {}, amount: {}", 
+                requestDto.getAccountNumber(), requestDto.getAmount());
+        
+        Transaction transaction = transactionService.deposit(
+                requestDto.getAccountNumber(), 
+                requestDto.getAmount(), 
+                requestDto.getDescription()
+        );
+        
+        TransactionResponseDto responseDto = transactionMapper.toResponseDto(transaction);
+        log.info("Deposit completed successfully. Transaction ID: {}", transaction.getId());
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<TransactionDto> withdraw(
-            @RequestParam @NotBlank String accountNumber,
-            @RequestParam @Positive BigDecimal amount,
-            @RequestParam(required = false) String description) {
-        Transaction transaction = transactionService.withdraw(accountNumber, amount, description);
-        return ResponseEntity.ok(transactionMapper.toDto(transaction));
+    public ResponseEntity<TransactionResponseDto> withdraw(@Valid @RequestBody TransactionRequestDto requestDto) {
+        log.info("Processing withdrawal request for account: {}, amount: {}", 
+                requestDto.getAccountNumber(), requestDto.getAmount());
+        
+        Transaction transaction = transactionService.withdraw(
+                requestDto.getAccountNumber(), 
+                requestDto.getAmount(),
+                requestDto.getDescription()
+        );
+        
+        TransactionResponseDto responseDto = transactionMapper.toResponseDto(transaction);
+        log.info("Withdrawal completed successfully. Transaction ID: {}", transaction.getId());
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<TransactionDto> transfer(
-            @RequestParam @NotBlank String fromAccountNumber,
-            @RequestParam @NotBlank String toAccountNumber,
-            @RequestParam @Positive BigDecimal amount,
-            @RequestParam(required = false) String description) {
-        Transaction transaction = transactionService.transfer(fromAccountNumber, toAccountNumber, amount, description);
-        return ResponseEntity.ok(transactionMapper.toDto(transaction));
+    public ResponseEntity<TransactionResponseDto> transfer(@Valid @RequestBody TransactionRequestDto requestDto) {
+        log.info("Processing transfer request from: {} to: {}, amount: {}", 
+                requestDto.getAccountNumber(), requestDto.getToAccountNumber(), requestDto.getAmount());
+        
+        if (requestDto.getToAccountNumber() == null || requestDto.getToAccountNumber().trim().isEmpty()) {
+            throw new IllegalArgumentException("Destination account number is required for transfer");
+        }
+        
+        Transaction transaction = transactionService.transfer(
+                requestDto.getAccountNumber(), 
+                requestDto.getToAccountNumber(),
+                requestDto.getAmount(),
+                requestDto.getDescription()
+        );
+        
+        TransactionResponseDto responseDto = transactionMapper.toResponseDto(transaction);
+        log.info("Transfer completed successfully. Transaction ID: {}", transaction.getId());
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @GetMapping("/account/{accountNumber}")
-    public ResponseEntity<List<TransactionDto>> getAccountTransactions(@PathVariable @NotBlank String accountNumber) {
+    public ResponseEntity<List<TransactionResponseDto>> getTransactionsByAccount(
+            @PathVariable @NotBlank String accountNumber) {
+        log.info("Retrieving transactions for account: {}", accountNumber);
+        
         List<Transaction> transactions = transactionService.getAccountTransactions(accountNumber);
-        return ResponseEntity.ok(transactionMapper.toDtoList(transactions));
+        List<TransactionResponseDto> responseDtos = transactionMapper.toResponseDtoList(transactions);
+        
+        return ResponseEntity.ok(responseDtos);
     }
 } 

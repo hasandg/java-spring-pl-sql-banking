@@ -1,5 +1,5 @@
 {
-  "id": "banking-api-env",
+  "id": "banking-api-env-id",
   "name": "Banking API Environment",
   "values": [
     {
@@ -37,7 +37,27 @@
       "value": "",
       "enabled": true,
       "type": "default"
+    },
+    {
+      "key": "depositAmount",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "withdrawAmount",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "transferAmount",
+      "value": "",
+      "enabled": true,
+      "type": "default"
     }
   ],
-  "_postman_variable_scope": "environment"
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2024-12-01T12:00:00.000Z",
+  "_postman_exported_using": "Postman/10.0.0"
 } 

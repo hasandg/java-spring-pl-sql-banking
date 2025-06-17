@@ -1,95 +1,530 @@
 {
   "info": {
+    "_postman_id": "banking-api-collection",
     "name": "Banking API Collection",
-    "description": "Comprehensive API collection for Java Spring Boot Banking Application",
-    "version": "1.0.0"
+    "description": "Comprehensive API collection for Java Spring Boot Banking Application with PL/SQL integration",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8081"
+      "value": "http://localhost:8081",
+      "type": "string"
     },
     {
       "key": "accountNumber1",
-      "value": ""
+      "value": "",
+      "type": "string"
     },
     {
-      "key": "accountNumber2", 
-      "value": ""
+      "key": "accountNumber2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "depositAmount",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "withdrawAmount",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transferAmount",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
     {
-      "name": "Create Account 1",
-      "event": [
+      "name": "Account Management",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Status code is 200', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "const responseJson = pm.response.json();",
-              "pm.collectionVariables.set('accountNumber1', responseJson.accountNumber);"
-            ]
+          "name": "Create Account 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has account number', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('accountNumber');",
+                  "    pm.collectionVariables.set('accountNumber1', responseJson.accountNumber);",
+                  "});",
+                  "",
+                  "pm.test('Account has initial balance', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.balance).to.be.a('number');",
+                  "    pm.expect(responseJson.balance).to.be.at.least(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountHolderName\": \"John Doe\",\n  \"balance\": 5000.00,\n  \"accountType\": \"SAVINGS\",\n  \"currency\": \"USD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "accounts"
+              ]
+            }
           }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"accountHolderName\": \"John Doe\",\n  \"balance\": 5000.00,\n  \"accountType\": \"SAVINGS\",\n  \"currency\": \"USD\"\n}"
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "accounts"]
+        {
+          "name": "Create Account 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has account number', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('accountNumber');",
+                  "    pm.collectionVariables.set('accountNumber2', responseJson.accountNumber);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountHolderName\": \"Jane Smith\",\n  \"balance\": 3000.00,\n  \"accountType\": \"CHECKING\",\n  \"currency\": \"USD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "accounts"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Account details are correct', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.accountNumber).to.equal(pm.collectionVariables.get('accountNumber1'));",
+                  "    pm.expect(responseJson).to.have.property('balance');",
+                  "    pm.expect(responseJson).to.have.property('accountType');",
+                  "    pm.expect(responseJson).to.have.property('currency');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/accounts/{{accountNumber1}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "{{accountNumber1}}"
+              ]
+            }
+          }
         }
-      }
+      ]
     },
     {
-      "name": "Deposit Money",
-      "event": [
+      "name": "Transaction Operations",
+      "item": [
         {
-          "listen": "prerequest",
-          "script": {
-            "exec": [
-              "const amount = (Math.random() * 1000 + 100).toFixed(2);",
-              "pm.collectionVariables.set('depositAmount', amount);"
-            ]
+          "name": "Deposit Money",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const depositAmount = (Math.random() * 1000 + 100).toFixed(2);",
+                  "pm.collectionVariables.set('depositAmount', depositAmount);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Transaction created successfully', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('id');",
+                  "    pm.expect(responseJson.transactionType).to.equal('DEPOSIT');",
+                  "    pm.expect(responseJson.status).to.equal('COMPLETED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/deposit?accountNumber={{accountNumber1}}&amount={{depositAmount}}&description=API Test Deposit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "deposit"
+              ],
+              "query": [
+                {
+                  "key": "accountNumber",
+                  "value": "{{accountNumber1}}"
+                },
+                {
+                  "key": "amount",
+                  "value": "{{depositAmount}}"
+                },
+                {
+                  "key": "description",
+                  "value": "API Test Deposit"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Withdraw Money",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const withdrawAmount = (Math.random() * 500 + 50).toFixed(2);",
+                  "pm.collectionVariables.set('withdrawAmount', withdrawAmount);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Withdrawal transaction created', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.transactionType).to.equal('WITHDRAWAL');",
+                  "    pm.expect(responseJson.status).to.equal('COMPLETED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/withdraw?accountNumber={{accountNumber1}}&amount={{withdrawAmount}}&description=API Test Withdrawal",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "withdraw"
+              ],
+              "query": [
+                {
+                  "key": "accountNumber",
+                  "value": "{{accountNumber1}}"
+                },
+                {
+                  "key": "amount",
+                  "value": "{{withdrawAmount}}"
+                },
+                {
+                  "key": "description",
+                  "value": "API Test Withdrawal"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Transfer Money",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const transferAmount = (Math.random() * 300 + 50).toFixed(2);",
+                  "pm.collectionVariables.set('transferAmount', transferAmount);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Transfer transaction created', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.transactionType).to.equal('TRANSFER');",
+                  "    pm.expect(responseJson.status).to.equal('COMPLETED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/transfer?fromAccountNumber={{accountNumber1}}&toAccountNumber={{accountNumber2}}&amount={{transferAmount}}&description=API Test Transfer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "transfer"
+              ],
+              "query": [
+                {
+                  "key": "fromAccountNumber",
+                  "value": "{{accountNumber1}}"
+                },
+                {
+                  "key": "toAccountNumber",
+                  "value": "{{accountNumber2}}"
+                },
+                {
+                  "key": "amount",
+                  "value": "{{transferAmount}}"
+                },
+                {
+                  "key": "description",
+                  "value": "API Test Transfer"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Account Transactions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Transactions list returned', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.be.an('array');",
+                  "    if (responseJson.length > 0) {",
+                  "        pm.expect(responseJson[0]).to.have.property('id');",
+                  "        pm.expect(responseJson[0]).to.have.property('transactionType');",
+                  "        pm.expect(responseJson[0]).to.have.property('amount');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/account/{{accountNumber1}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "account",
+                "{{accountNumber1}}"
+              ]
+            }
           }
         }
-      ],
-      "request": {
-        "method": "POST",
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/transactions/deposit?accountNumber={{accountNumber1}}&amount={{depositAmount}}&description=Test Deposit",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "transactions", "deposit"],
-          "query": [
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Get Non-existent Account",
+          "event": [
             {
-              "key": "accountNumber",
-              "value": "{{accountNumber1}}"
-            },
-            {
-              "key": "amount", 
-              "value": "{{depositAmount}}"
-            },
-            {
-              "key": "description",
-              "value": "Test Deposit"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Error message returned', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('Account not found');",
+                  "});"
+                ]
+              }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/accounts/999999999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "accounts",
+                "999999999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Insufficient Funds Withdrawal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Insufficient funds error', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('Insufficient funds');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/withdraw?accountNumber={{accountNumber1}}&amount=999999&description=Large Withdrawal Test",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "withdraw"
+              ],
+              "query": [
+                {
+                  "key": "accountNumber",
+                  "value": "{{accountNumber1}}"
+                },
+                {
+                  "key": "amount",
+                  "value": "999999"
+                },
+                {
+                  "key": "description",
+                  "value": "Large Withdrawal Test"
+                }
+              ]
+            }
+          }
         }
-      }
+      ]
     }
   ]
 } 

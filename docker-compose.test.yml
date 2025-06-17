@@ -34,7 +34,7 @@ services:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=test
-      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@oracle-db:1521:ORCLCDB
+      - SPRING_DATASOURCE_URL=jdbc:oracle:thin:@oracle-db:1522:ORCLCDB
       - SPRING_DATASOURCE_USERNAME=system
       - SPRING_DATASOURCE_PASSWORD=Oracle123
       - SPRING_REDIS_HOST=redis

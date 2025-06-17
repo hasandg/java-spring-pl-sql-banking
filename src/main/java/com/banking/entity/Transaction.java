@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -48,7 +49,8 @@ public class Transaction {
     @Column(name = "DESCRIPTION")
     private String description;
 
-    @Column(name = "TRANSACTION_DATE", nullable = false)
+    @Column(name = "TRANSACTION_DATE")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime transactionDate;
 
     @Column(name = "STATUS", nullable = false)

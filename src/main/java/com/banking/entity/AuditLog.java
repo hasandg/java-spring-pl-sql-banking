@@ -1,5 +1,6 @@
 package com.banking.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -21,6 +22,7 @@ public class AuditLog {
     private String userId;
 
     @Column(name = "TIMESTAMP", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 
     @Column(name = "DETAILS")
