@@ -1,7 +1,11 @@
 package com.banking.config;
 
+import com.banking.entity.Account;
+import com.banking.entity.Transaction;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import org.redisson.Redisson;
@@ -16,6 +20,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
 
@@ -41,42 +46,62 @@ public class RedisConfig {
     }
 
     @Bean
-    public ObjectMapper redisObjectMapper() {
+    public ObjectMapper cacheObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(), DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
         mapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.activateDefaultTyping(
+            LaissezFaireSubTypeValidator.instance,
+            DefaultTyping.NON_FINAL,
+            JsonTypeInfo.As.PROPERTY
+        );
+        mapper.findAndRegisterModules();
         return mapper;
     }
 
     @Bean
-    public GenericJackson2JsonRedisSerializer redisSerializer(ObjectMapper redisObjectMapper) {
-        return new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+    public GenericJackson2JsonRedisSerializer redisSerializer() {
+        return new GenericJackson2JsonRedisSerializer(cacheObjectMapper());
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory, GenericJackson2JsonRedisSerializer redisSerializer) {
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(redisSerializer);
+        template.setValueSerializer(redisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(redisSerializer);
+        template.setHashValueSerializer(redisSerializer());
+        template.setDefaultSerializer(redisSerializer());
         template.afterPropertiesSet();
         return template;
     }
 
     @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, GenericJackson2JsonRedisSerializer redisSerializer) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        
+        RedisCacheConfiguration accountCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(Duration.ofMinutes(60))
+            .disableCachingNullValues()
+            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer()));
+
+        RedisCacheConfiguration transactionCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(Duration.ofMinutes(30))
-            .serializeKeysWith(org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair
-                .fromSerializer(new StringRedisSerializer()))
-            .serializeValuesWith(org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair
-                .fromSerializer(redisSerializer));
+            .disableCachingNullValues()
+            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer()));
+
+        RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(Duration.ofMinutes(30))
+            .disableCachingNullValues()
+            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(redisSerializer()));
 
         return RedisCacheManager.builder(connectionFactory)
-            .cacheDefaults(config)
+            .cacheDefaults(defaultCacheConfig)
+            .withCacheConfiguration("accounts", accountCacheConfig)
+            .withCacheConfiguration("transactions", transactionCacheConfig)
             .build();
     }
 } 
